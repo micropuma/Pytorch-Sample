@@ -1,0 +1,2 @@
+# PyTorch features
+This repos contains some demos to show pytorch2.0 new features. Thanks Shashank Prasanna for his awesome blog: [A tour of PyTorch2](https://shashankprasanna.com/workshops/a-tour-of-pytorch2/). Also refer to [Walk through blog](https://depyf.readthedocs.io/en/latest/walk_through.html) for further understanding. Refer to [Triton in Pytorch video](https://www.bilibili.com/video/BV1ZoRPYQE2K/?spm_id_from=333.337.search-card.all.click&vd_source=7cc24e214309f4db17f1dda017fc6683) for debug tips(detailed torch-logs).
