@@ -16,5 +16,11 @@ dependencies = [
     "scikit-learn>=1.0",
 ]
 
+# 添加测试依赖组
+[project.optional-dependencies]
+tests = [
+    "pytest>=8.1.1",  # 推荐指定最低版本
+]
+
 [project.urls]
 "Homepage" = "https://github.com/ebimsv/mlpredictor"
