@@ -1,0 +1,36 @@
+[project]
+name = "dly_gems"
+version = "0.0.1"
+authors = [
+	{name = "Leon Dou", email = "leondou67@gmail.com"}
+]
+description = "DlyGems is a simple version of FlagGems, serves as a small tutorial for triton function library implementation."
+readme = {file= "READEM.md", content-type="text/markdown"}
+requires-python = ">=3.11"
+license = {text = "LICENSE.txt"}
+
+# 在pypi中注册的分类标签
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "triton>=3.3.0",
+    "matplotlib>=3.10.3",
+    "pandas>=2.1.3",
+    "numpy>=1.26.4",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+pythonpath = [
+    "src",
+]

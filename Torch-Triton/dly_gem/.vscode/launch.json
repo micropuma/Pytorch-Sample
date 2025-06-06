@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        ///////// 配置 [1]：这是我用来带参调试当前 .py 的配置
+        {
+            "name": "Python Debugger: Current File with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "${command:pickArgs}"
+            ]
+        },
+        ///////// 配置 [2]：这是我用 pytest 带参调试的配置
+        {
+            "name": "Python: pytest",
+            "type": "debugpy",
+            "request": "launch",
+            /// 由于我的 pytest 在虚拟环境中，所以这里指定了虚拟环境中的解释器和 pytest 
+            "python": "/mnt/home/douliyang/mlsys/Pytorch-Sample/dly/bin/python",  // 虚拟环境解释器
+            "module": "pytest",  // 用 python -m pytest 启动
+            "args": [
+                "/mnt/home/douliyang/mlsys/Pytorch-Sample/Torch-Triton/dly_gem/test/dly_gems/op_accu_test.py", // 可以是文件、函数、类::方法
+                "--capture=no",
+                "--disable-warnings"
+            ],
+            "console": "integratedTerminal"
+        },
+    ]
+}
