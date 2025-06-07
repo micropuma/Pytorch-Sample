@@ -11,6 +11,9 @@ class LibEntry(triton.KernelInterface):
         self.divisibility = 16
         self.config_cache = dict()
         self.kernel_cache = dict()
+
+        # 判断function的类型
+        # 由于我们的装饰器第一个是autotuner，所以function的instance是autotuner
         if isinstance(fn, triton.runtime.Autotuner):
             self.rt = "Autotuner"
         elif isinstance(fn, triton.runtime.Heuristics):
@@ -33,6 +36,8 @@ class LibEntry(triton.KernelInterface):
         if self.rt == "Autotuner":
             if entry_key not in self.config_cache:
                 # tune
+                # 实际的调用点，并加入缓存cache
+                # 需要学习一下KernelInterface的run方法
                 kernel = self.fn.run(*args, **kwargs)
                 config = self.fn.best_config.kwargs
                 self.config_cache[entry_key] = config
@@ -80,7 +85,7 @@ class LibEntry(triton.KernelInterface):
         kernel[grid[0:3]](*args)
         return
 
-
+# triton library入口装饰器
 def libentry():
     """
     Decorator for triton library entries.
