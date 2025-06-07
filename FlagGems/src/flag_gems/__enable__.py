@@ -1,38 +1,59 @@
 import torch
+from .abs import abs
+from .add import add
 from .addmm import addmm
 from .bmm import bmm
 from .cumsum import cumsum
-from .dropout import dropout
+from .div import div
+from .dropout import native_dropout
+from .exp import exp, exp_out
 from .gelu import gelu
 from .layernorm import layer_norm
+from .mean import mean
 from .mm import mm
+from .mul import mul
+from .pow_scalar import pow_scalar
+from .pow_tensor_scalar import pow_tensor_scalar
+from .pow_tensor_tensor import pow_tensor_tensor
+from .reciprocal import reciprocal
 from .relu import relu
+from .rsqrt import rsqrt
 from .silu import silu
+from .sub import sub
 from .triu import triu
 from .softmax import softmax
 
+# 算子加速引擎
 aten_lib = torch.library.Library("aten", "IMPL")
 
-
 def enable(lib=aten_lib):
+    lib.impl("abs", abs, "CUDA")
+    lib.impl("add.Tensor", add, "CUDA")
     lib.impl("addmm", addmm, "CUDA")
     lib.impl("bmm", bmm, "CUDA")
-    lib.impl("bmm.out", bmm, "CUDA")
     lib.impl("cumsum", cumsum, "CUDA")
-    lib.impl("cumsum.out", cumsum, "CUDA")
-    lib.impl("dropout", dropout, "CUDA")
+    lib.impl("div.Tensor", div, "CUDA")
+    lib.impl("native_dropout", native_dropout, "AutogradCUDA")
+    lib.impl("exp", exp, "CUDA")
+    lib.impl("exp.out", exp_out, "CUDA")
     lib.impl("gelu", gelu, "CUDA")
-    lib.impl("layer_norm", layer_norm, "CompositeImplicitAutograd")
+    lib.impl("native_layer_norm", layer_norm, "AutogradCUDA")
+    lib.impl("mean", mean, "CUDA")
     lib.impl("mm", mm, "CUDA")
-    lib.impl("relu", relu, "CUDA")
-    lib.impl("silu", silu, "CUDA")
-    lib.impl("silu.out", silu, "CUDA")
+    lib.impl("mul.Tensor", mul, "CUDA")
+    lib.impl("pow.Scalar", pow_scalar, "CUDA")
+    lib.impl("pow.Tensor_Scalar", pow_tensor_scalar, "CUDA")
+    lib.impl("pow.Tensor_Tensor", pow_tensor_tensor, "CUDA")
+    lib.impl("reciprocal", reciprocal, "CUDA")
+    lib.impl("relu", relu, "AutogradCUDA")
+    lib.impl("rsqrt", rsqrt, "CUDA")
+    lib.impl("silu", silu, "AutogradCUDA")
+    lib.impl("sub.Tensor", sub, "CUDA")
     lib.impl("triu", triu, "CUDA")
-    lib.impl("triu.out", triu, "CUDA")
-    lib.impl("softmax.int", softmax, "CompositeImplicitAutograd")
+    lib.impl("softmax.int", softmax, "AutogradCUDA")
 
-
-class Context:
+# define a class, support with use_gems as a context manager
+class use_gems:
     def __init__(self):
         self.lib = torch.library.Library("aten", "IMPL")
 

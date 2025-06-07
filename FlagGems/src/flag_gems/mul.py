@@ -19,9 +19,10 @@ from .__libentry__ import libentry
     key=["M"],
 )
 @triton.jit
-def relu_forward_kernel(
+def mul_kernel(
     X,
     Y,
+    O,
     M,
     M_BLOCK_SIZE: tl.constexpr,
 ):
@@ -42,9 +43,18 @@ def relu_forward_kernel(
         block_shape=(M_BLOCK_SIZE,),
         order=(0,),
     )
+    O_ptrs = tl.make_block_ptr(
+        O,
+        shape=(M,),
+        strides=(1,),
+        offsets=(pid,),
+        block_shape=(M_BLOCK_SIZE,),
+        order=(0,),
+    )
     X_val = tl.load(X_ptrs)
-    Y_val = tl.where(X_val > 0, X_val, 0)
-    tl.store(Y_ptrs, Y_val.to(X_val.dtype))
+    Y_val = tl.load(Y_ptrs)
+    O_val = X_val * Y_val
+    tl.store(O_ptrs, O_val.to(X_val.dtype))
 
 
 @libentry()
@@ -62,22 +72,14 @@ def relu_forward_kernel(
     key=["M"],
 )
 @triton.jit
-def relu_backward_kernel(
-    dY,
+def mul_scalar_kernel(
     X,
-    dX,
+    Y_scalar,
+    O,
     M,
     M_BLOCK_SIZE: tl.constexpr,
 ):
     pid = tl.program_id(0) * M_BLOCK_SIZE
-    dY_ptrs = tl.make_block_ptr(
-        dY,
-        shape=(M,),
-        strides=(1,),
-        offsets=(pid,),
-        block_shape=(M_BLOCK_SIZE,),
-        order=(0,),
-    )
     X_ptrs = tl.make_block_ptr(
         X,
         shape=(M,),
@@ -86,45 +88,50 @@ def relu_backward_kernel(
         block_shape=(M_BLOCK_SIZE,),
         order=(0,),
     )
-    dX_ptrs = tl.make_block_ptr(
-        dX,
+    O_ptrs = tl.make_block_ptr(
+        O,
         shape=(M,),
         strides=(1,),
         offsets=(pid,),
         block_shape=(M_BLOCK_SIZE,),
         order=(0,),
     )
-    dY_val = tl.load(dY_ptrs)
     X_val = tl.load(X_ptrs)
-    dX_val = tl.where(X_val > 0, dY_val, 0)
-    tl.store(dX_ptrs, dX_val.to(dY_val.dtype))
+    O_val = X_val * Y_scalar
+    tl.store(O_ptrs, O_val.to(X_val.dtype))
 
 
-class Relu(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, A):
-        if __debug__:
-            print("GEMS RELU FORWARD")
+def mul(A, B):
+    if __debug__:
+        print("GEMS MUL")
+    if isinstance(A, torch.Tensor) and isinstance(B, torch.Tensor):
+        A = A.contiguous()
+        O = torch.empty_like(A)
+        try:
+            A, B = torch.broadcast_tensors(A, B)
+        except RuntimeError as e:
+            print(
+                f"Mul: Tensor shape {A.shape} and tensor shape {B.shape} cannot broadcast to each other."
+            )
+        B = B.contiguous()
+        M = A.numel()
+        grid_fn = lambda meta: (triton.cdiv(M, meta["M_BLOCK_SIZE"]),)
+        mul_kernel[grid_fn](A, B, O, M)
+        return O
+    elif isinstance(A, torch.Tensor):
         A = A.contiguous()
         O = torch.empty_like(A)
         M = A.numel()
         grid_fn = lambda meta: (triton.cdiv(M, meta["M_BLOCK_SIZE"]),)
-        relu_forward_kernel[grid_fn](A, O, M)
-        ctx.save_for_backward(A)
+        mul_scalar_kernel[grid_fn](A, B, O, M)
         return O
-
-    @staticmethod
-    def backward(ctx, out_grad):
-        if __debug__:
-            print("GEMS RELU BACKWARD")
-        (inp,) = ctx.saved_tensors
-        M = inp.numel()
-        out_grad = out_grad.contiguous()
-        in_grad = torch.empty_like(out_grad)
+    elif isinstance(B, torch.Tensor):
+        B = B.contiguous()
+        O = torch.empty_like(B)
+        M = B.numel()
         grid_fn = lambda meta: (triton.cdiv(M, meta["M_BLOCK_SIZE"]),)
-        relu_backward_kernel[grid_fn](out_grad, inp, in_grad, M)
-        return in_grad
-
-
-def relu(A):
-    return Relu.apply(A)
+        mul_scalar_kernel[grid_fn](B, A, O, M)
+        return O
+    else:
+        # Both scalar
+        return A * B

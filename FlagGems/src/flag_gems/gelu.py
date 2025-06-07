@@ -99,14 +99,11 @@ def gelu_tanh_kernel(
     tl.store(Y_ptrs, output.to(inp.dtype))
 
 
-def gelu(A, approximate="none", out=None):
+def gelu(A, *, approximate="none"):
     if __debug__:
-        print("FLAG GELU")
-    if out == None:
-        O = torch.empty_like(A)
-    else:
-        O = out
+        print("GEMS GELU")
     A = A.contiguous()
+    O = torch.empty_like(A)
     M = A.numel()
 
     if approximate == "tanh":

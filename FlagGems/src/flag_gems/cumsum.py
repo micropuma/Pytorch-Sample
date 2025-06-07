@@ -45,28 +45,26 @@ def cumsum_kernel(
     tl.store(out_ptrs, result, mask=mask)
 
 
-def cumsum(inp, dim=1, *, dtype=None, out=None):
+def cumsum(inp, dim=1, *, dtype=None):
     if __debug__:
-        print("FLAG CUMSUM")
+        print("GEMS CUMSUM")
+    assert dim >= -inp.ndim and dim < inp.ndim, "Invalid dim"
     shape = inp.shape
-    dim = dim % len(shape)
+    dim = dim % inp.ndim
     M = 1
     N = shape[dim]
     for i in range(dim):
         M *= shape[i]
     inp = inp.contiguous()
-    inp = inp.reshape(M, N, -1)
     K = inp.numel() // M // N
 
     if dtype is None:
         dtype = inp.dtype
-    if out is None:
-        out = torch.empty_like(inp, dtype=dtype)
+    out = torch.empty_like(inp, dtype=dtype)
 
     grid = lambda meta: (
         triton.cdiv(M, meta["BLOCK_M"]),
         K,
     )
     cumsum_kernel[grid](inp, out, M, N, K)
-    out = out.reshape(shape)
     return out

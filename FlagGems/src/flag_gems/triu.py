@@ -98,13 +98,11 @@ def triu_batch_kernel(
     tl.store(Y + cols, y, mask=mask)
 
 
-def triu(A, diagonal=0, *, out=None):
+def triu(A, diagonal=0):
     if __debug__:
-        print("FLAG TRIU")
-    if out == None:
-        O = torch.empty_like(A)
-    else:
-        O = out
+        print("GEMS TRIU")
+    A = A.contiguous()
+    O = torch.empty_like(A)
     assert len(A.shape) > 1, "Input tensor must have at least 2 dimensions"
     M, N = A.shape[-2:]
     if len(A.shape) == 2:
@@ -113,7 +111,6 @@ def triu(A, diagonal=0, *, out=None):
     else:
         batch = int(torch.numel(A) / M / N)
         print(batch)
-        A = A.contiguous()
         B = A.view(batch, -1)
         grid = lambda meta: (
             triton.cdiv(batch, meta["BATCH_BLOCK_SIZE"]),
