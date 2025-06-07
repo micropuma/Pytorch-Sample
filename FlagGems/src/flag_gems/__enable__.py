@@ -23,8 +23,8 @@ from .sub import sub
 from .triu import triu
 from .softmax import softmax
 
-# 算子加速引擎
 aten_lib = torch.library.Library("aten", "IMPL")
+
 
 def enable(lib=aten_lib):
     lib.impl("abs", abs, "CUDA")
@@ -52,7 +52,7 @@ def enable(lib=aten_lib):
     lib.impl("triu", triu, "CUDA")
     lib.impl("softmax.int", softmax, "AutogradCUDA")
 
-# define a class, support with use_gems as a context manager
+
 class use_gems:
     def __init__(self):
         self.lib = torch.library.Library("aten", "IMPL")

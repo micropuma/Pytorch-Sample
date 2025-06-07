@@ -23,7 +23,6 @@ from .triu import triu
 from .softmax import softmax
 from .__enable__ import enable, use_gems
 
-# 控制from flag_gems import *时导入的内容
 __all__ = [
     "enable",
     "use_gems",
