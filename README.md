@@ -7,6 +7,7 @@ This repo contains some sub projects that help understand advanced techniques us
 * A naive Kernal Library in Triton, ref to FlagGems
 * Triton Kernel integration example
 * A tutoiral about how to implement flash attention from source
+* A simple pybind project, support MLIR pass
 
 ## References
 1. [Build first python package](https://medium.com/@ebimsv/building-python-packages-07fbfbb959a9)
