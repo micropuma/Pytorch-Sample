@@ -5,3 +5,7 @@ I am new to python programming, and this repo records some basic python keypoint
 * function
 * decorator
 * module
+* magic method
+
+## References
+1. [Python Magic Methods](http://www.sefidian.com/2021/06/06/python-__getattr__-and-__getattribute__-magic-methods/)
